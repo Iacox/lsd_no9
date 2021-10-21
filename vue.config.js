@@ -20,5 +20,5 @@ module.exports = {
   transpileDependencies: [
     'vuetify'
   ],
-	publicPath: '/',
+	publicPath: '/lsd_no9/',
 }
