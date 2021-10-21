@@ -14,7 +14,7 @@
             accept=".pdf,.docx, image/png"
             label="Выберите файлы"
             placeholder="Выберите файлы"
-            prepend-icon="mdi-paperclip"
+            prepend-icon=""
             truncate-length="25"
             counter
             multiple
