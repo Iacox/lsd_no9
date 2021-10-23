@@ -21,21 +21,19 @@ const opts = {
   },
 
 	theme: {
-		dark: true,
-
+		dark: false,
 		themes: {
 			light: {
-				primary: colors.blue.darken4,
-				secondary: colors.blueGrey.darken3,
-				accent: colors.blueGrey.darken4
+				primary: '#EBEBEC',
+				secondary: '#9B9B9F',
+				accent: '#151721',
 			},
 			dark: {
-				primary: colors.blueGrey.darken3,
-				secondary: colors.blueGrey.lighten2,
-				accent: colors.blueGrey.lighten5
+				primary: '#191D28',
+				secondary: '#2B3244',
+				accent: '#FFFFFF',
 			}
 		}
 	}
 }
-
 export default new Vuetify(opts)
