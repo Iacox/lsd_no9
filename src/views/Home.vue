@@ -1,13 +1,20 @@
 <template>
   <v-container class="page_wrapper" fluid fill-height>
     <v-fade-transition>
-      <SpinnerLoader v-if="dataLoading"/>
+      <v-row v-if="dataLoading" class="main_form flex-column">
+        <v-col cols="3" class="mx-auto text-center">
+          <v-subheader><span>Пожалуйста, подождите пока закончится обработка</span></v-subheader>
+          <v-subheader><span>В среднем занимает около 1 минуты.</span></v-subheader>
+        </v-col>
+        <v-col cols="3" class="mx-auto">
+          <SpinnerLoader/>
+        </v-col>
+      </v-row>
       <template v-else>
-        <v-row class="main_form flex-column">
+        <v-row v-if="!job" class="main_form flex-column">
           <v-col class="mx-auto col-12 col-md-8">
             <v-card class="main_form-block px-10 py-5">
               <v-file-input
-                @change="test"
                 v-model="files"
                 :rules="rules"
                 accept=".pdf,.docx, image/png"
@@ -41,10 +48,21 @@
 
           <v-col class="d-flex">
             <v-btn
+              @click="sendRequest"
               elevation="5"
               x-large
               class="main_form-btn_send mx-auto px-10"
             >Отправить</v-btn>
+          </v-col>
+        </v-row>
+        <v-row v-else>
+          <v-col class="d-flex">
+            <v-btn
+              @click="DownloadResultFiles"
+              elevation="5"
+              x-large
+              class="main_form-btn_send mx-auto px-10"
+            >Скачать результат</v-btn>
           </v-col>
         </v-row>
       </template>
@@ -53,7 +71,7 @@
 </template>
 
 <script>
-import { mapMutations, mapActions } from "vuex";
+import { mapMutations, mapActions } from 'vuex'
 
 export default {
   name: 'MainPage',
@@ -68,15 +86,89 @@ export default {
       rules: [
         array => (!array.length || array.every(file => file.size < 10240000)) || 'Размер каждого файла не должен превышать 10 MB!',
       ],
+      job: null,
     }
   },
   methods: {
     ...mapMutations(['SET_STATE']),
-    ...mapActions(['sendFiles']),
+    ...mapActions([
+      'sendFiles',
+      'checkJobStatus',
+      'getJobResult',
+    ]),
 
-    test(e) {
-      console.log(`files`, this.files)
-      console.log(`e`, e)
+    async sendRequest() {
+      if (!this.files.length || !this.dpiValue)
+        return this.$snackbar({
+					type: 'error',
+					message: 'Сначала выберите файлы для отправки.'
+				})
+
+      this.dataLoading = true
+      const request = await this.sendFiles({
+        filesData: this.files,
+        dpi: this.dpiValue,
+      })
+      console.log(`request`, request)
+
+      if (request?.id) {
+        this.$snackbar({
+					type: 'success',
+					message: 'Файл успешно доставлен на сервер.'
+				})
+
+        this.job = {
+          id: request.id,
+          loading: true,
+          interval: 0,
+          result: '',
+        }
+        this.job.interval = setInterval(async () => {
+          const request = await this.checkJobStatus(this.job.id)
+          console.log(`request`, request)
+
+          if (request?.response?.status === 200) {
+            this.job.loading = false
+            clearInterval(this.job.interval)
+            await this.requestJobResult()
+          } else if (request?.response?.status === 422) {
+            this.$snackbar({
+              type: 'info',
+              message: 'Файл обрабатывается.'
+            })
+          } else {
+            clearInterval(this.job.interval)
+            this.dataLoading = false
+            this.job.loading = false
+            this._vm.$snackbar({
+              type: 'error',
+              message: 'Не удалось проверить статус задачи.'
+            })
+          }
+        }, 10000)
+      } else
+        this.dataLoading = false
+    },
+    async requestJobResult() {
+      const request = await this.getJobResult(this.job)
+      console.dir(request)
+      if (request)
+        this.job.result = request
+      else
+        this.$snackbar({
+          type: 'error',
+					message: 'При загрузке файла произошла ошибка.'
+        })
+      this.dataLoading = false
+    },
+    DownloadResultFiles () {
+      if (!this.job?.result)
+        return
+
+      const file = new File([this.job?.result], this.files?.[0]?.name)  // {type: this.files?.[0]?.type}
+      const exportUrl = URL.createObjectURL(file)
+      window.location.assign(exportUrl)
+      URL.revokeObjectURL(exportUrl)
     },
   },
 }
@@ -88,7 +180,18 @@ export default {
   border-radius: 1em;
 }
 
+.v-subheader > span {
+  width: 100%;
+}
+
 .theme--light {
+  .spinner-loader {
+    min-height: unset !important;
+    .spinner-loader__loader div {
+      background-color: #151721 !important;
+    }
+  }
+
   .page_wrapper {
     background: #EBEBEC !important;
   }
@@ -129,6 +232,10 @@ export default {
   }
 }
 .theme--dark {
+  .spinner-loader__loader div {
+    background-color: #FFFFFF !important;
+  }
+
   .page_wrapper {
     background: #191D28 !important;
   }
