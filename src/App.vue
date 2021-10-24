@@ -5,7 +5,9 @@
       prominent
 			class="px-4"
 		>
-			<img :src="logo" class="my-auto">
+			<v-col cols="2" class="my-auto">
+				<img :src="logo">
+			</v-col>
 			<v-spacer></v-spacer>
 
 			<div class="d-flex flex-column my-auto">
@@ -14,13 +16,11 @@
 			</div>
 			<v-spacer></v-spacer>
 
-			<v-btn
-				@click="ToggleTheme"
-				class="my-auto"
-				icon
-			>
-				<v-icon x-large>{{ $vuetify.theme.isDark ? 'mdi-weather-night' : 'mdi-white-balance-sunny'}}</v-icon>
-			</v-btn>
+			<v-col cols="2" class="my-auto d-flex">
+				<v-btn @click="ToggleTheme" icon class="ml-auto">
+					<v-icon x-large>{{ $vuetify.theme.isDark ? 'mdi-weather-night' : 'mdi-white-balance-sunny'}}</v-icon>
+				</v-btn>
+			</v-col>
 		</v-app-bar>
 
 		<v-main>
