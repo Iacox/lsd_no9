@@ -166,9 +166,10 @@ export default {
         return
 
       const file = new File([this.job?.result], this.files?.[0]?.name)  // {type: this.files?.[0]?.type}
-      const exportUrl = URL.createObjectURL(file)
-      window.location.assign(exportUrl)
-      URL.revokeObjectURL(exportUrl)
+      const a = document.createElement('a')
+      a.href = URL.createObjectURL(file)
+      a.download = 'test.txt'
+      a.click()
     },
   },
 }
