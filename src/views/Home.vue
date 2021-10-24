@@ -165,10 +165,11 @@ export default {
       if (!this.job?.result)
         return
 
-      const file = new File([this.job?.result], this.files?.[0]?.name)  // {type: this.files?.[0]?.type}
+      const blob = new Blob([this.job?.result])
+      const file = new File([blob], this.files?.[0]?.name)  // {type: this.files?.[0]?.type}
       const a = document.createElement('a')
       a.href = URL.createObjectURL(file)
-      a.download = 'test.txt'
+      a.download = this.files?.[0]?.name
       a.click()
     },
   },
